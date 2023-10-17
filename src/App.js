@@ -1,4 +1,5 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [task, setTask] = useState({
@@ -6,6 +7,18 @@ function App() {
     title: "",
     description: "",
   });
+
+  useEffect(() => {
+    const getTasks = async () => {
+      try {
+        const {data} = await axios.get("http://localhost:5000/api/tasks");
+        setTasks(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    getTasks();
+  }, [tasks]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -19,28 +32,32 @@ function App() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(!task._id) {
-      fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(task),
-      })
-        .then((response) => response.json())
-        .catch((err) => console.log(err));
+    const data = {
+      _id: task._id,
+      title: task.title,
+      description: task.description,
+    };
+
+    if (!data.title || !data.description) {
+      return;
+    }
+
+    if (data.title.trim() === "" || data.description.trim() === "") {
+      return;
+    }
+
+    if (!data._id) {
+      try {
+        await axios.post("http://localhost:5000/api/tasks", {data});
+      } catch (err) {
+        console.error(err);
+      }
     } else {
-      fetch("/api/tasks", {
-        method: "PUT",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(task),
-      })
-        .then((response) => response.json())
-        .catch((err) => console.log(err));
+      try {
+        await axios.put(`http://localhost:5000/api/tasks/${data._id}`, data);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     setTask({
@@ -50,41 +67,24 @@ function App() {
     });
   };
 
-  const getTasks = () => {
-    fetch("http://localhost:5000/api/tasks")
-      .then(response => response.json())
-      .then(data => {
-        setTasks(data)
-        console.log(data);
-      });
-  };
-  getTasks();
-
-  const deleteTask = (id) => {
+  const deleteTask = async (_id) => {
     // eslint-disable-next-line no-restricted-globals
-    if(confirm("Are you sure you want to delete it?")) {
-      fetch(`/api/tasks/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => response.json())
-        .catch((err) => console.log(err));
+    if (confirm("Are you sure you want to delete it?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/tasks/${_id}`);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
-  
-  const updateTask = (id) => {
-    fetch(`/api/tasks/${id}`)
-      .then(response => response.json())
-      .then(data => {
-        setTask({
-          _id: data._id,
-          title: data.title,
-          description: data.description,
-        })
-      });
+
+  const updateTask = async (_id) => {
+    try {
+      const {data} = await axios.get(`http://localhost:5000/api/tasks/${_id}`);
+      setTask(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -104,12 +104,8 @@ function App() {
               <div className="card-content">
                 <form onSubmit={handleSubmit}>
                   <div className="row">
-                  <div className="input-field col s12">
-                      <input
-                        type="hidden"
-                        name="_id"
-                        value={task._id}
-                      />
+                    <div className="input-field col s12">
+                      <input type="hidden" name="_id" value={task._id} />
                     </div>
                     <div className="input-field col s12">
                       <input
