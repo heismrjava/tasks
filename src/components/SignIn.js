@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 
-function SignIn({setToken}) {
+function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState({

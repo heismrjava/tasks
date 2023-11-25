@@ -12,14 +12,14 @@ function Task() {
   useEffect(() => {
     const getTasks = async () => {
       try {
-        const {data} = await axios.get("http://localhost:5000/api/tasks");
+        const { data } = await axios.get("http://localhost:5000/api/tasks");
         setTasks(data);
       } catch (err) {
         console.error(err);
       }
     };
     getTasks();
-  }, []);
+  }, [tasks]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -49,7 +49,7 @@ function Task() {
 
     if (!data._id) {
       try {
-        await axios.post("http://localhost:5000/api/tasks", {data});
+        await axios.post("http://localhost:5000/api/tasks", data);
       } catch (err) {
         console.error(err);
       }
@@ -81,7 +81,9 @@ function Task() {
 
   const updateTask = async (_id) => {
     try {
-      const {data} = await axios.get(`http://localhost:5000/api/tasks/${_id}`);
+      const { data } = await axios.get(
+        `http://localhost:5000/api/tasks/${_id}`
+      );
       setTask(data);
     } catch (err) {
       console.error(err);
